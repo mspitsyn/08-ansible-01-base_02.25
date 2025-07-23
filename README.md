@@ -37,3 +37,73 @@
 
 Приложите ссылку на ваше решение в поле «Ссылка на решение» и нажмите «Отправить решение»
 ---
+
+
+## Решения заданий основной части
+1. Запускаем playbook на окружении из `test.yml`. Значение `some_fact` для указанного хоста при выполнении playbook равно `12`.  
+   ![task-1](screenshots/task-1.png)  
+2. Заменяем значение ключа `some_fact:` с `12` на `all default fact`  в файле `playbook/group_vars/all/examp.yml`.  
+3. Подготавливаем окружение в файле `script.sh` с помощью docker для проведения дальнейших испытаний на окружении из `prod.yml`.
+   ```bash
+    #!/bin/bash
+
+    NAME1=centos7
+    NAME2=ubuntu
+
+    IMAGE1=pycontribs/centos:7
+    IMAGE2=pycontribs/ubuntu:latest
+
+    docker run --rm -dit --name $NAME1 $IMAGE1
+    docker run --rm -dit --name $NAME2 $IMAGE2
+    ```
+4. Дописываем в `script.sh` и выполняем ansible-playbook на окружении `prod.yml`:
+   ```bash
+   #!/bin/bash
+
+    NAME1=centos7
+    NAME2=ubuntu
+
+    IMAGE1=pycontribs/centos:7
+    IMAGE2=pycontribs/ubuntu:latest
+
+    docker run --rm -dit --name $NAME1 $IMAGE1
+    docker run --rm -dit --name $NAME2 $IMAGE2
+
+    ansible-playbook -i inventory/prod.yml site.yml
+
+    docker stop $NAME1 $NAME2
+    ```  
+
+ ![task-4](screenshots/task-4.png)  
+
+5. Меняем значения ключей `some_fact` в файлах `playbook/group_vars/deb/examp.yml` и `playbook/group_vars/el/examp.yml` для `deb` — `deb default fact`, для `el` — `el default fact`.  
+6.  ![task-6](screenshots/task-6.png)   
+7.  При помощи `ansible-vault` шифрую факты в group_vars/deb и group_vars/el с паролем `netology`:
+    ![task-7](screenshots/task-7.png)   
+    Проверяем зашифрованные файлы:  
+    ![task-8](screenshots/task-8.png)   
+8. Изменяем строку запуска playbook в scrit.sh на:  `ansible-playbook -i inventory/prod.yml site.yml --ask-vault-pass`  
+9. `ansible-doc -t connection -l`  
+    выбираем: ansible.builtin.ssh      connect via SSH client binary  
+10. Добавляем в файл `prod.yml` новую группу `local`:
+    ```yml
+    ---
+    el:
+        hosts:
+        centos7:
+            ansible_connection: docker
+    
+    deb:
+        hosts:
+        ubuntu:
+            ansible_connection: docker
+    
+    local:
+        hosts:
+        debian:
+            ansible_connection: local
+                          ansible_host: localhost
+    ```   
+    
+11. ВЫполняем playbook:
+    ![task-10](screenshots/task-10.png)  
